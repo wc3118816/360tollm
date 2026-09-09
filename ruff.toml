@@ -1,0 +1,3 @@
+# 顶层 ruff.toml 仅做最小额外补充；主配置在 pyproject.toml [tool.ruff]
+# 此文件保留以便 CI 用 `ruff check --config ruff.toml .` 兜底。
+extend = "pyproject.toml"

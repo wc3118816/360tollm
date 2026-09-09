@@ -1,0 +1,77 @@
+# TOLLM default configuration.
+# Override via:
+#   1) environment variables (prefix TOLLM_, e.g. TOLLM_LOG_LEVEL=DEBUG)
+#   2) a custom yaml pointed by TOLLM_CONFIG_PATH
+#   3) a sibling `configs/local.yaml` (auto-merged, gitignored)
+
+project:
+  name: tollm
+  version: 0.0.1
+  timezone: Asia/Shanghai
+
+paths:
+  # Resolve relative to project root (the folder containing pyproject.toml).
+  datasets: datasets
+  recordings: datasets/recordings
+  checkpoints: checkpoints
+  logs: logs
+  cache: .cache
+
+log:
+  level: INFO
+  format: console          # console | json
+  log_level_override: ""   # e.g. "modules ingest=DEBUG"
+
+ingest:
+  source: offline          # offline | rtmp | file
+  rtmp_url: ""
+  reconnect_attempts: 5
+  reconnect_backoff_sec: 2.0
+  target_fps: 2.0
+  io_timeout_sec: 5.0      # RTMP/RTSP IO 超时, 0 表示用 ffmpeg 默认
+  low_latency: true        # 启用 nobuffer/low_delay 标志
+
+frame:
+  timestamp_source: ingest   # ingest | decode
+  drop_stale: true
+
+calibration:
+  max_reproj_error: 1.0       # 像素, > 该阈值视为标定失败 (M006 AC)
+  chessboard_cols: 9          # 棋盘格内角点列数
+  chessboard_rows: 6          # 棋盘格内角点行数
+  square_size: 0.025          # 格子边长 (米)
+  min_valid_images: 5          # 最少有效图像数
+
+depth:
+  backend: dummy            # none | dummy | midas | midas_small | metric3d | zoe | bifuze
+  device: cpu               # cpu | cuda
+  max_resolution: 1024      # 输入图像最大边长 (超过则下采样)
+  near: 0.5                 # 深度映射下限 (米)
+  far: 20.0                 # 深度映射上限 (米)
+
+slam:
+  backend: dummy            # none | dummy | orb | feature | feature_vo (M011) | orbslam3 | msvc (M013)
+  vocab_path: ""
+  device: cpu               # cpu | cuda
+  n_features: 1000          # ORB 特征数 (FeatureVO)
+  scale_factor: 0.1         # 单目尺度因子 (米, 启发式)
+
+perception:
+  detection:
+    backend: none          # none | yolov8 | rtdetr   (filled in M019)
+    device: cpu
+  segmentation:
+    backend: none           # filled in M020
+
+world_model:
+  coordinate_system: world   # world | camera
+  units: meters             # SI
+  temporal_window_sec: 30
+  memory_persist: true
+
+llm:
+  provider: openai          # openai | anthropic | local
+  model: gpt-4o-mini
+  api_key_env: OPENAI_API_KEY
+  temperature: 0.0
+  max_tokens: 1024
